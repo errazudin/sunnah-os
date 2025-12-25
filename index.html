@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>We ❤️ Prophet Muhammad (PBUH)</title>
+    
+    <!-- PWA Manifest (Embedded) -->
+    <link rel="manifest" href='data:application/manifest+json;base64,eyJuYW1lIjoiU3VubmFoIE9TIiwic2hvcnRfbmFtZSI6IlN1bm5haCBPUyIsInN0YXJ0X3VybCI6Ii4iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjMDIwNjE3IiwidGhlbWVfY29sb3IiOiIjMDIwNjE3Iiwib3JpZW50YXRpb24iOiJwb3J0cmFpdCIsImljb25zIjpbeyJzcmMiOiJodHRwczovL2Nkbi1pY29ucy1wbmcuZmxhdGljb24uY29tLzUxMi8yMzE5LzIzMTk4ODYucG5nIiwic2l6ZXMiOiIxOTJ4MTkyIiwidHlwZSI6ImltYWdlL3BuZyJlLHsic3JjIjoiaHR0cHM6Ly9jZG4taWNvbnMtcG5nLmZsYXRpY29uLmNvbS81MTIvMjMxOS8yMzE5ODg2LnBuZyIsInNpemVzIjoiNTEyeDUxMiIsInR5cGUiOiJpbWFnZS9wbmcifV19' />
+    
+    <!-- iOS Support -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Sunnah OS">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2319/2319886.png">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;400;600;800&family=Space+Grotesk:wght@300;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #020617; /* Slate 950 */
+            color: #fff;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
+            overscroll-behavior-y: none;
+        }
+        
+        .font-display { font-family: 'Space Grotesk', sans-serif; }
+        
+        /* Language Specific Fonts */
+        .lang-zh { font-family: 'Noto Sans SC', sans-serif; }
+        .lang-ja { font-family: 'Noto Sans JP', sans-serif; }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #020617; }
+        ::-webkit-scrollbar-thumb { background: #10b981; border-radius: 2px; }
+
+        /* Animations */
+        @keyframes pulse-emerald { 0%, 100% { box-shadow: 0 0 15px rgba(16, 185, 129, 0.2); } 50% { box-shadow: 0 0 30px rgba(16, 185, 129, 0.5); } }
+        @keyframes pulse-gold { 0%, 100% { box-shadow: 0 0 15px rgba(234, 179, 8, 0.2); } 50% { box-shadow: 0 0 30px rgba(234, 179, 8, 0.5); } }
+
+        .animate-pulse-emerald { animation: pulse-emerald 3s infinite; }
+        .animate-pulse-gold { animation: pulse-gold 4s infinite; }
+
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // --- ICONS ---
+        const Icon = ({ name, size = 20, className }) => {
+            const icons = {
+                mosque: <path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z"/>,
+                moon: <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>,
+                sun: <><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></>,
+                sunrise: <><path d="M12 2v8"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m8 6 4-4 4 4"/><path d="M16 18a4 4 0 0 0-8 0"/></>,
+                book: <><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></>,
+                coffee: <><path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></>,
+                briefcase: <><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></>,
+                bed: <><path d="M2 4v16"/><path d="M2 8h18a2 2 0 0 1 2 2v10"/><path d="M2 17h20"/><path d="M6 8v9"/></>,
+                heart: <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>,
+                users: <><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></>,
+                sparkles: <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L12 3Z"/>,
+                download: <><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></>,
+                globe: <><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></>
+            };
+            return <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>{icons[name] || icons.sparkles}</svg>;
+        };
+
+        // --- LOCALIZATION DATA ---
+        const LANGUAGES = {
+            en: { name: 'English', flag: '🇬🇧' },
+            ms: { name: 'Bahasa Melayu', flag: '🇲🇾' },
+            zh: { name: '中文', flag: '🇨🇳' },
+            fr: { name: 'Français', flag: '🇫🇷' },
+            ru: { name: 'Русский', flag: '🇷🇺' },
+            ja: { name: '日本語', flag: '🇯🇵' },
+            it: { name: 'Italiano', flag: '🇮🇹' },
+            es: { name: 'Español', flag: '🇪🇸' }
+        };
+
+        const TRANSLATIONS = {
+            en: {
+                appTitle: "WE ❤️ PROPHET MUHAMMAD (PBUH)",
+                current: "Current Phase",
+                next: "Up Next",
+                recommended: "RECOMMENDED SUNNAHS",
+                timeline: "FULL 24H CYCLE",
+                install: "Install App",
+                footer_note: "Time ranges are estimates. Please refer to your local prayer times for better accuracy.",
+                footer_love: "Made with extra",
+                footer_loc: "in Puncak Alam",
+                detecting: "Detecting...",
+                manual: "Manual Mode",
+                my_loc: "My Location",
+                routines: {
+                    qiyam: { title: "The Third Third of Night", desc: "The most blessed time for intimacy with Allah.", sunnahs: ['Wake up and wipe sleep from face', 'Recite: "Alhamdulillahil ladzi ahyana..."', 'Look at the sky & recite last 10 verses of Ali Imran', 'Use Siwak (clean teeth)', 'Perform Wudhu perfectly', 'Perform Tahajud Prayer', 'Make sincere Dua'] },
+                    sahur: { title: "Pre-Dawn (Sahur)", desc: "Preparing for the fast & seeking forgiveness.", sunnahs: ['Eat Sahur (even a sip of water is blessed)', 'Recite Istighfar continuously', 'Make intention to fast', 'Wait for the Adhan of Fajr'] },
+                    fajr: { title: "Fajr Prayer", desc: "The first obligatory prayer of the day.", sunnahs: ['Pray 2 Rakat Sunnah', 'Go to Masjid early', 'Pray Fajr in Congregation', 'Recite Morning Adhkar'] },
+                    isyraq: { title: "Sunrise (Syuruq)", desc: "Remembrance until the sun rises.", sunnahs: ['Remain seated at prayer place after Fajr', 'Engage in Dhikr or Quran', 'Wait until sun has fully risen', 'Pray 2 Rakat Isyraq'] },
+                    duha: { title: "Duha (Forenoon)", desc: "Productivity and gratitude.", sunnahs: ['Pray Duha Prayer', 'Work with honesty and integrity', 'Give charity (Sedekah)', 'Visit the sick or help family'] },
+                    qailulah: { title: "Qailulah (Nap)", desc: "A short rest to energize for worship.", sunnahs: ['Take a short nap (20-30 mins)', 'Intention: To gain strength for Night Prayer', 'Wake up and perform Wudhu'] },
+                    zuhur: { title: "Zuhur Prayer", desc: "The mid-day spiritual check-in.", sunnahs: ['Pray 4 Rakat Sunnah BEFORE Zuhur', 'Pray 2 Rakat Sunnah AFTER Zuhur', 'Prolong Ruku and Sujood', 'Make Dua after prayer'] },
+                    asar: { title: "Asar Prayer", desc: "The late afternoon prayer.", sunnahs: ['Recite Asar Adhkar', 'Sit with family', 'Attend knowledge circles', 'Avoid sleeping after Asar'] },
+                    evening: { title: "Evening Zikir", desc: "Wind down and family bonding.", sunnahs: ['Recite Evening Adhkar', 'Help with dinner preparation', 'Spend quality time with family'] },
+                    maghrib: { title: "Maghrib Prayer", desc: "Sunset and breaking of the day.", sunnahs: ['Break fast with dates/water', 'Respond to the Adhan', 'Pray Maghrib promptly', 'Pray 2 Rakat Sunnah AFTER Maghrib'] },
+                    isya: { title: "Isya Prayer", desc: "The night prayer.", sunnahs: ['Delay slightly if congregation agrees', 'Pray 2 Rakat Sunnah AFTER Isya', 'Discussion of knowledge', 'Pray Witr'] },
+                    sleep: { title: "Sleep (Adab)", desc: "Resting the Sunnah way.", sunnahs: ['Perform Wudhu', 'Dust the bed 3 times', 'Recite 3 Quls & Ayatul Kursi', 'Lie on right side', 'Forgive everyone'] }
+                }
+            },
+            ms: {
+                appTitle: "KAMI ❤️ NABI MUHAMMAD (SAW)",
+                current: "Fasa Semasa",
+                next: "Seterusnya",
+                recommended: "SUNNAH YANG DIANJURKAN",
+                timeline: "KITARAN 24 JAM",
+                install: "Pasang Aplikasi",
+                footer_note: "Julat masa adalah anggaran. Sila rujuk waktu solat tempatan untuk ketepatan.",
+                footer_love: "Dibuat dengan kasih",
+                footer_loc: "di Puncak Alam",
+                detecting: "Mengesan...",
+                manual: "Mod Manual",
+                my_loc: "Lokasi Saya",
+                routines: {
+                    qiyam: { title: "Sepertiga Akhir Malam", desc: "Waktu paling diberkati untuk bermunajat.", sunnahs: ['Bangun dan sapu muka', 'Baca doa bangun tidur', 'Lihat langit & baca 10 ayat akhir Ali Imran', 'Bersiwak', 'Wuduk sempurna', 'Solat Tahajud', 'Doa bersungguh-sungguh'] },
+                    sahur: { title: "Pra-Subuh (Sahur)", desc: "Persediaan puasa & istighfar.", sunnahs: ['Makan Sahur', 'Perbanyakkan Istighfar', 'Niat puasa', 'Tunggu Azan Subuh'] },
+                    fajr: { title: "Solat Subuh", desc: "Solat wajib pertama hari ini.", sunnahs: ['Solat Sunat 2 Rakaat (Fajar)', 'Ke Masjid awal', 'Solat berjemaah', 'Baca Al-Mathurat Pagi'] },
+                    isyraq: { title: "Syuruq (Terbit Matahari)", desc: "Berdzikir sehingga matahari terbit.", sunnahs: ['Duduk di tikar sejadah selepas Subuh', 'Zikir/Quran', 'Tunggu matahari terbit penuh', 'Solat Sunat Isyraq'] },
+                    duha: { title: "Duha", desc: "Produktiviti dan kesyukuran.", sunnahs: ['Solat Sunat Duha', 'Bekerja dengan jujur', 'Sedekah (walau senyuman)', 'Ziarah orang sakit/bantu keluarga'] },
+                    qailulah: { title: "Qailulah (Tidur Sekejap)", desc: "Rehat sebentar untuk tenaga ibadah.", sunnahs: ['Tidur sekejap (20-30 min) sebelum Zohor', 'Niat: Kuat untuk Qiyamullail', 'Bangun dan ambil wuduk'] },
+                    zuhur: { title: "Solat Zohor", desc: "Pertengahan hari.", sunnahs: ['4 Rakaat Sunat SEBELUM Zohor', '2 Rakaat Sunat SELEPAS Zohor', 'Lama ruku & sujud', 'Doa selepas solat'] },
+                    asar: { title: "Solat Asar", desc: "Solat lewat petang.", sunnahs: ['Baca Al-Mathurat Petang', 'Duduk bersama keluarga', 'Majlis ilmu', 'Elak tidur lepas Asar'] },
+                    evening: { title: "Zikir Petang", desc: "Santai dan ikatan keluarga.", sunnahs: ['Baca Zikir Petang', 'Bantu sediakan makan malam', 'Masa berkualiti dengan keluarga'] },
+                    maghrib: { title: "Solat Maghrib", desc: "Terbenam matahari.", sunnahs: ['Berbuka puasa (kurma/air)', 'Jawab Azan', 'Solat awal waktu', '2 Rakaat Sunat SELEPAS Maghrib'] },
+                    isya: { title: "Solat Isyak", desc: "Solat malam.", sunnahs: ['Lewatkan sedikit jika jemaah setuju', '2 Rakaat Sunat SELEPAS Isyak', 'Majlis ilmu', 'Solat Witir'] },
+                    sleep: { title: "Tidur (Adab)", desc: "Rehat cara Sunnah.", sunnahs: ['Ambil Wuduk', 'Kibas tempat tidur 3x', 'Baca 3 Qul & Ayatul Kursi', 'Baring sisi kanan', 'Maafkan semua orang'] }
+                }
+            },
+            zh: {
+                appTitle: "我们 ❤️ 先知穆罕默德 (PBUH)",
+                current: "当前阶段",
+                next: "下一个",
+                recommended: "推荐的圣行 (SUNNAH)",
+                timeline: "24小时循环",
+                install: "安装应用",
+                footer_note: "时间范围仅供参考。请参阅当地祈祷时间以获得准确性。",
+                footer_love: "用心制作",
+                footer_loc: "在 Puncak Alam",
+                detecting: "检测中...",
+                manual: "手动模式",
+                my_loc: "我的位置",
+                routines: {
+                    qiyam: { title: "夜间最后三分之一", desc: "最为神圣的时刻。", sunnahs: ['醒来擦去脸上的睡意', '背诵醒来祷词', '看天空并背诵 Ali Imran 最后10节', '刷牙 (Siwak)', '完美的小净 (Wudhu)', '夜间祷告 (Tahajud)', '真诚祈祷'] },
+                    sahur: { title: "封斋饭 (Sahur)", desc: "准备禁食并寻求宽恕。", sunnahs: ['吃封斋饭', '不断求恕 (Istighfar)', '举意禁食', '等待晨礼唤礼'] },
+                    fajr: { title: "晨礼 (Fajr)", desc: "一天的第一次义务祷告。", sunnahs: ['2拜圣行拜', '早去清真寺', '集体祷告', '早晨记主词'] },
+                    isyraq: { title: "日出 (Syuruq)", desc: "记主直到日出。", sunnahs: ['晨礼后留在原处', '记主或读古兰经', '等待太阳完全升起', '2拜日出拜'] },
+                    duha: { title: "杜哈 (Duha)", desc: "生产力与感恩。", sunnahs: ['杜哈祷告', '诚实工作', '施舍 (Sedekah)', '探望病人'] },
+                    qailulah: { title: "午睡 (Qailulah)", desc: "短暂休息以恢复精力。", sunnahs: ['午前小睡 (20-30分钟)', '举意: 为夜间祷告积蓄力量', '醒来做小净'] },
+                    zuhur: { title: "晌礼 (Zuhur)", desc: "午间精神检查。", sunnahs: ['晌礼前4拜圣行', '晌礼后2拜圣行', '延长鞠躬和叩头', '祷告后祈祷'] },
+                    asar: { title: "晡礼 (Asar)", desc: "下午的祷告。", sunnahs: ['背诵傍晚记主词', '与家人共处', '参加知识圈', '避免晡礼后睡觉'] },
+                    evening: { title: "傍晚记主", desc: "放松与家庭纽带。", sunnahs: ['傍晚记主', '帮忙准备晚餐', '陪伴家人'] },
+                    maghrib: { title: "昏礼 (Maghrib)", desc: "日落。", sunnahs: ['用椰枣/水开斋', '回应唤礼', '及时祷告', '昏礼后2拜圣行'] },
+                    isya: { title: "宵礼 (Isya)", desc: "夜间祷告。", sunnahs: ['稍微推迟 (如果是集体首选)', '宵礼后2拜圣行', '讨论知识', '威特尔 (Witr) 祷告'] },
+                    sleep: { title: "睡眠礼仪", desc: "以圣行方式休息。", sunnahs: ['睡前做小净', '拍打床铺3次', '背诵保护经文', '右侧卧', '原谅所有人'] }
+                }
+            },
+            fr: {
+                appTitle: "NOUS ❤️ PROPHÈTE MAHOMET (PSL)", current: "Phase Actuelle", next: "Suivant", recommended: "SUNNAHS RECOMMANDÉES", timeline: "CYCLE 24H", install: "Installer", footer_note: "Les horaires sont des estimations. Référez-vous aux horaires locaux.", footer_love: "Fait avec amour", footer_loc: "à Puncak Alam", detecting: "Détection...", manual: "Mode Manuel", my_loc: "Ma Position",
+                routines: {
+                    qiyam: { title: "Dernier Tiers de la Nuit", desc: "Moment béni.", sunnahs: ['Se réveiller', 'Doua du réveil', 'Siwak', 'Wudhu', 'Tahajud', 'Doua'] },
+                    sahur: { title: "Sahur", desc: "Avant l'aube.", sunnahs: ['Manger Sahur', 'Istighfar', 'Intention de jeûner', 'Attendre Fajr'] },
+                    fajr: { title: "Prière de Fajr", desc: "L'aube.", sunnahs: ['2 Rakat Sunnah', 'Aller à la mosquée', 'En groupe', 'Adhkar du matin'] },
+                    isyraq: { title: "Lever du Soleil", desc: "Dhikr jusqu'au lever.", sunnahs: ['Rester assis', 'Dhikr/Coran', 'Prière Isyraq'] },
+                    duha: { title: "Duha", desc: "Matinée.", sunnahs: ['Prière Duha', 'Travail honnête', 'Charité', 'Visiter les malades'] },
+                    qailulah: { title: "Sieste (Qailulah)", desc: "Repos court.", sunnahs: ['Sieste (20min)', 'Intention pour la nuit', 'Wudhu'] },
+                    zuhur: { title: "Prière de Dhuhr", desc: "Midi.", sunnahs: ['4 Rakat avant', '2 Rakat après', 'Doua'] },
+                    asar: { title: "Prière de Asr", desc: "Après-midi.", sunnahs: ['Adhkar du soir', 'Famille', 'Pas de sommeil après Asr'] },
+                    evening: { title: "Soirée", desc: "Famille.", sunnahs: ['Adhkar', 'Aider au dîner', 'Temps en famille'] },
+                    maghrib: { title: "Prière de Maghrib", desc: "Coucher du soleil.", sunnahs: ['Rompre le jeûne', 'Répondre à l\'Adhan', 'Prière à l\'heure', '2 Rakat après'] },
+                    isya: { title: "Prière de Isha", desc: "Nuit.", sunnahs: ['Retarder légèrement', '2 Rakat après', 'Witr'] },
+                    sleep: { title: "Sommeil", desc: "Dormir.", sunnahs: ['Wudhu', 'Nettoyer le lit', '3 Quls', 'Côté droit', 'Pardonner'] }
+                }
+            },
+            ru: { 
+                appTitle: "МЫ ❤️ ПРОРОКА МУХАММЕДА (С.А.В.)", current: "Текущая фаза", next: "Далее", recommended: "РЕКОМЕНДУЕМЫЕ СУННЫ", timeline: "24-ЧАСОВОЙ ЦИКЛ", install: "Установить", footer_note: "Время приблизительное. Для точности сверяйтесь с местным временем молитв.", footer_love: "Сделано с любовью", footer_loc: "в Puncak Alam", detecting: "Поиск...", manual: "Ручной режим", my_loc: "Моя локация", 
+                routines: {
+                    qiyam: { title: "Последняя треть ночи", desc: "Благословенное время для близости к Аллаху.", sunnahs: ['Проснуться и протереть лицо', 'Читать дуа после сна', 'Посмотреть на небо и прочитать последние 10 аятов суры Аль Имран', 'Использовать сивак', 'Совершить омовение', 'Совершить намаз Тахаджуд', 'Искренне делать дуа'] },
+                    sahur: { title: "Сухур", desc: "Подготовка к посту и покаяние.", sunnahs: ['Есть сухур (даже глоток воды)', 'Многократно произносить Истигфар', 'Намерение поститься', 'Ждать азана на Фаджр'] },
+                    fajr: { title: "Намаз Фаджр", desc: "Первая обязательная молитва дня.", sunnahs: ['2 раката Сунны', 'Идти в мечеть пораньше', 'Молиться с джамаатом', 'Читать утренние азкары'] },
+                    isyraq: { title: "Восход (Ишрак)", desc: "Поминание Аллаха до восхода солнца.", sunnahs: ['Оставаться на месте после Фаджра', 'Зикр или чтение Корана', 'Ждать полного восхода солнца', '2 раката намаза Ишрак'] },
+                    duha: { title: "Духа", desc: "Продуктивность и благодарность.", sunnahs: ['Намаз Духа', 'Честно работать', 'Давать милостыню (Садака)', 'Посещать больных'] },
+                    qailulah: { title: "Кайлула (Дневной сон)", desc: "Короткий отдых для сил на поклонение.", sunnahs: ['Короткий сон (20-30 мин)', 'Намерение: набраться сил для ночной молитвы', 'Проснуться и совершить омовение'] },
+                    zuhur: { title: "Намаз Зухр", desc: "Полуденная духовная проверка.", sunnahs: ['4 раката Сунны ДО Зухра', '2 раката Сунны ПОСЛЕ Зухра', 'Удлинять поясной и земной поклоны', 'Дуа после намаза'] },
+                    asar: { title: "Намаз Аср", desc: "Предвечерняя молитва.", sunnahs: ['Читать вечерние азкары', 'Сидеть с семьей', 'Посещать кружки знаний', 'Не спать после Асра'] },
+                    evening: { title: "Вечерний Зикр", desc: "Отдых и время с семьей.", sunnahs: ['Читать вечерние азкары', 'Помогать с ужином', 'Время с семьей'] },
+                    maghrib: { title: "Намаз Магриб", desc: "Закат солнца.", sunnahs: ['Разговеться финиками/водой', 'Отвечать на азан', 'Молиться вовремя', '2 раката Сунны ПОСЛЕ Магриба'] },
+                    isya: { title: "Намаз Иша", desc: "Ночная молитва.", sunnahs: ['Слегка отложить (если джамаат согласен)', '2 раката Сунны ПОСЛЕ Иша', 'Обсуждение знаний', 'Намаз Витр'] },
+                    sleep: { title: "Сон (Адаб)", desc: "Отдых по Сунне.", sunnahs: ['Совершить омовение', 'Отряхнуть постель 3 раза', 'Читать 3 суры и Аят аль-Курси', 'Лежать на правом боку', 'Простить всех'] }
+                }
+            },
+            ja: { 
+                appTitle: "私たちは ❤️ 預言者ムハンマド (PBUH)", current: "現在のフェーズ", next: "次へ", recommended: "推奨されるスンナ", timeline: "24時間サイクル", install: "インストール", footer_note: "時間は目安です。正確な時間は地域の礼拝時刻表を参照してください。", footer_love: "愛を込めて", footer_loc: "Puncak Alamにて", detecting: "検出中...", manual: "手動モード", my_loc: "現在地", 
+                routines: {
+                    qiyam: { title: "夜の最後の三分の一", desc: "アッラーとの親密さのための最も祝福された時間。", sunnahs: ['起きて顔の眠気を拭う', '目覚めのドゥアを読む', '空を見てアーリ・イムラーン章の最後の10節を読む', 'スィワク（歯磨き）を使う', 'ウドゥを完璧に行う', 'タハジュド礼拝を行う', '心からのドゥアをする'] },
+                    sahur: { title: "サフール（夜明け前の食事）", desc: "断食の準備と許しを求める。", sunnahs: ['サフールを食べる（水一口でも）', 'イスティグファールを繰り返す', '断食の意図（ニーヤ）をする', 'ファジルのアザーンを待つ'] },
+                    fajr: { title: "ファジル礼拝", desc: "一日の最初の義務の祈り。", sunnahs: ['スンナを2ラカート祈る', '早めにモスクへ行く', '集団で礼拝する', '朝のアズカールを読む'] },
+                    isyraq: { title: "日の出（イシュラク）", desc: "日の出までの念唱。", sunnahs: ['ファジルの後、その場に留まる', 'ズィクルやクルアーンを読む', '太陽が完全に昇るのを待つ', 'イシュラク礼拝を2ラカート行う'] },
+                    duha: { title: "ドゥハ（午前）", desc: "生産性と感謝。", sunnahs: ['ドゥハ礼拝を行う', '誠実に働く', 'サダカ（施し）をする', '病人を・家族を助ける'] },
+                    qailulah: { title: "カイルーラ（昼寝）", desc: "崇拝のためにエネルギーを蓄える短い休息。", sunnahs: ['短い昼寝（20-30分）', '意図：夜の礼拝のために力を得る', '起きてウドゥを行う'] },
+                    zuhur: { title: "ズフル礼拝", desc: "正午の精神的なチェック。", sunnahs: ['ズフル前にスンナ4ラカート', 'ズフル後にスンナ2ラカート', 'ルクウとスジュードを長くする', '礼拝後にドゥアをする'] },
+                    asar: { title: "アスル礼拝", desc: "午後の遅い時間の祈り。", sunnahs: ['夕方のアズカールを読む', '家族と過ごす', '知識の集まりに参加する', 'アスルの後は寝ない'] },
+                    evening: { title: "夕方のズィクル", desc: "リラックスと家族の絆。", sunnahs: ['夕方のアズカールを読む', '夕食の準備を手伝う', '家族と質の高い時間を過ごす'] },
+                    maghrib: { title: "マグリブ礼拝", desc: "日没と一日の終わり。", sunnahs: ['デーツや水で断食を破る', 'アザーンに応答する', 'すぐに礼拝する', 'マグリブ後にスンナ2ラカート'] },
+                    isya: { title: "イシャ礼拝", desc: "夜の祈り。", sunnahs: ['集団が同意すれば少し遅らせる', 'イシャ後にスンナ2ラカート', '知識の議論', 'ウィトル礼拝'] },
+                    sleep: { title: "睡眠（作法）", desc: "スンナの方法で休む。", sunnahs: ['寝る前にウドゥを行う', 'ベッドを3回払う', '3つのクル（守護の章）とアヤトル・クルスィーを読む', '右側を下にして寝る', '全員を許す'] }
+                }
+            },
+            it: { 
+                appTitle: "NOI ❤️ PROFETA MAOMETTO (PBUH)", current: "Fase Attuale", next: "Prossimo", recommended: "SUNNAH RACCOMANDATE", timeline: "CICLO 24H", install: "Installa", footer_note: "Gli orari sono stime. Si prega di fare riferimento agli orari locali per maggiore precisione.", footer_love: "Fatto con amore", footer_loc: "a Puncak Alam", detecting: "Rilevamento...", manual: "Modo Manuale", my_loc: "Mia Posizione", 
+                routines: {
+                    qiyam: { title: "Ultimo Terzo della Notte", desc: "Il momento più benedetto.", sunnahs: ['Svegliarsi', 'Dua del risveglio', 'Guardare il cielo e recitare ultimi 10 versi di Ali Imran', 'Usare il Siwak', 'Wudhu perfetto', 'Preghiera Tahajud', 'Dua sincera'] },
+                    sahur: { title: "Sahur", desc: "Prima dell'alba.", sunnahs: ['Mangiare Sahur', 'Istighfar continuo', 'Intenzione di digiunare', 'Attendere Fajr'] },
+                    fajr: { title: "Preghiera Fajr", desc: "La prima preghiera.", sunnahs: ['2 Rakat Sunnah', 'Andare in moschea presto', 'In congregazione', 'Adhkar del mattino'] },
+                    isyraq: { title: "Alba (Ishraq)", desc: "Dhikr fino al sorgere del sole.", sunnahs: ['Rimanere seduti', 'Dhikr/Corano', 'Attendere il sole', '2 Rakat Ishraq'] },
+                    duha: { title: "Duha", desc: "Produttività.", sunnahs: ['Preghiera Duha', 'Lavoro onesto', 'Sadaqah', 'Visitare i malati'] },
+                    qailulah: { title: "Qailulah (Riposino)", desc: "Breve riposo.", sunnahs: ['Riposino (20-30 min)', 'Intenzione per la notte', 'Wudhu'] },
+                    zuhur: { title: "Preghiera Zuhur", desc: "Mezzogiorno.", sunnahs: ['4 Rakat prima', '2 Rakat dopo', 'Prolungare Ruku/Sujood', 'Dua'] },
+                    asar: { title: "Preghiera Asar", desc: "Pomeriggio.", sunnahs: ['Adhkar della sera', 'Stare in famiglia', 'Circoli di conoscenza', 'Niente sonno dopo Asar'] },
+                    evening: { title: "Dhikr Serale", desc: "Famiglia.", sunnahs: ['Recitare Adhkar', 'Aiutare per cena', 'Tempo in famiglia'] },
+                    maghrib: { title: "Preghiera Maghrib", desc: "Tramonto.", sunnahs: ['Rompere il digiuno', 'Rispondere all\'Adhan', 'Pregare subito', '2 Rakat dopo'] },
+                    isya: { title: "Preghiera Isya", desc: "Notte.", sunnahs: ['Ritardare leggermente', '2 Rakat dopo', 'Conoscenza', 'Witr'] },
+                    sleep: { title: "Sonno", desc: "Dormire secondo Sunnah.", sunnahs: ['Wudhu', 'Spolverare il letto', '3 Qul & Ayatul Kursi', 'Lato destro', 'Perdonare tutti'] }
+                }
+            },
+            es: { 
+                appTitle: "NOSOTROS ❤️ PROFETA MUHAMMAD (PBUH)", current: "Fase Actual", next: "Siguiente", recommended: "SUNNAHS RECOMENDADAS", timeline: "CICLO 24H", install: "Instalar", footer_note: "Los horarios son estimados. Consulte sus horarios de oración locales para mayor precisión.", footer_love: "Hecho con amor", footer_loc: "en Puncak Alam", detecting: "Detectando...", manual: "Modo Manual", my_loc: "Mi Ubicación", 
+                routines: {
+                    qiyam: { title: "El Último Tercio de la Noche", desc: "Tiempo bendito.", sunnahs: ['Despertarse', 'Súplica al despertar', 'Mirar al cielo y recitar últimos 10 versos de Ali Imran', 'Usar Siwak', 'Wudhu perfecto', 'Oración Tahajud', 'Súplica sincera'] },
+                    sahur: { title: "Sahur", desc: "Antes del amanecer.", sunnahs: ['Comer Sahur', 'Istighfar continuo', 'Intención de ayunar', 'Esperar al Fajr'] },
+                    fajr: { title: "Oración de Fajr", desc: "La primera oración.", sunnahs: ['2 Rakat Sunnah', 'Ir a la mezquita temprano', 'En congregación', 'Adhkar de la mañana'] },
+                    isyraq: { title: "Amanecer (Isyraq)", desc: "Dhikr hasta la salida del sol.", sunnahs: ['Permanecer sentado', 'Dhikr/Corán', 'Esperar salida del sol', '2 Rakat Isyraq'] },
+                    duha: { title: "Duha", desc: "Productividad.", sunnahs: ['Oración Duha', 'Trabajo honesto', 'Sadaqah', 'Visitar enfermos'] },
+                    qailulah: { title: "Qailulah (Siesta)", desc: "Breve descanso.", sunnahs: ['Siesta (20-30 min)', 'Intención para la noche', 'Wudhu'] },
+                    zuhur: { title: "Oración de Zuhur", desc: "Mediodía.", sunnahs: ['4 Rakat antes', '2 Rakat después', 'Prolongar Ruku/Sujood', 'Súplica'] },
+                    asar: { title: "Oración de Asar", desc: "Tarde.", sunnahs: ['Adhkar de la tarde', 'Estar con familia', 'Círculos de conocimiento', 'No dormir después de Asar'] },
+                    evening: { title: "Dhikr Vespertino", desc: "Familia.", sunnahs: ['Recitar Adhkar', 'Ayudar con la cena', 'Tiempo en familia'] },
+                    maghrib: { title: "Oración de Maghrib", desc: "Puesta del sol.", sunnahs: ['Romper ayuno', 'Responder al Adhan', 'Orar puntualmente', '2 Rakat después'] },
+                    isya: { title: "Oración de Isya", desc: "Noche.", sunnahs: ['Retrasar ligeramente', '2 Rakat después', 'Conocimiento', 'Witr'] },
+                    sleep: { title: "Sueño", desc: "Dormir según la Sunnah.", sunnahs: ['Wudhu', 'Sacudir la cama', '3 Quls & Ayatul Kursi', 'Lado derecho', 'Perdonar a todos'] }
+                }
+            }
+        };
+
+        // --- STRUCTURE ---
+        const ROUTINE_STRUCTURE = [
+            { id: 'qiyam', icon: 'sparkles', color: 'gold' },
+            { id: 'sahur', icon: 'coffee', color: 'emerald' },
+            { id: 'fajr', icon: 'mosque', color: 'emerald' },
+            { id: 'isyraq', icon: 'sunrise', color: 'gold' },
+            { id: 'duha', icon: 'briefcase', color: 'indigo' },
+            { id: 'qailulah', icon: 'bed', color: 'indigo' },
+            { id: 'zuhur', icon: 'sun', color: 'emerald' },
+            { id: 'asar', icon: 'sun', color: 'emerald' },
+            { id: 'evening', icon: 'users', color: 'indigo' },
+            { id: 'maghrib', icon: 'mosque', color: 'emerald' },
+            { id: 'isya', icon: 'moon', color: 'emerald' },
+            { id: 'sleep', icon: 'bed', color: 'indigo' }
+        ];
+
+        // --- APP COMPONENT ---
+        const App = () => {
+            const [now, setNow] = useState(new Date());
+            const [mode, setMode] = useState('gps');
+            const [lang, setLang] = useState('en');
+            const [prayerTimes, setPrayerTimes] = useState(null);
+            const [timeline, setTimeline] = useState([]);
+            const [currentSlot, setCurrentSlot] = useState(null);
+            const [nextSlot, setNextSlot] = useState(null);
+            const [locationName, setLocationName] = useState(TRANSLATIONS.en.detecting);
+            const [errorMsg, setErrorMsg] = useState(null);
+            const [deferredPrompt, setDeferredPrompt] = useState(null);
+            const [showInstallBtn, setShowInstallBtn] = useState(false);
+            const [showLangMenu, setShowLangMenu] = useState(false);
+
+            // Translation Helper
+            const t = (key) => TRANSLATIONS[lang][key] || TRANSLATIONS['en'][key];
+            const tRoutine = (id) => TRANSLATIONS[lang].routines[id] || TRANSLATIONS['en'].routines[id];
+
+            // PWA Install
+            useEffect(() => {
+                const handler = (e) => { e.preventDefault(); setDeferredPrompt(e); setShowInstallBtn(true); };
+                window.addEventListener('beforeinstallprompt', handler);
+                return () => window.removeEventListener('beforeinstallprompt', handler);
+            }, []);
+
+            const handleInstallClick = async () => {
+                if (!deferredPrompt) return;
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') setShowInstallBtn(false);
+                setDeferredPrompt(null);
+            };
+
+            // Clock
+            useEffect(() => {
+                const timer = setInterval(() => setNow(new Date()), 1000 * 30);
+                return () => clearInterval(timer);
+            }, []);
+
+            // Initial Load
+            useEffect(() => {
+                setLocationName(t('detecting'));
+                if (mode === 'gps') fetchTimes();
+                else {
+                    generateTimeline({ Fajr: "05:45", Sunrise: "07:05", Dhuhr: "13:15", Asr: "16:30", Maghrib: "19:15", Isha: "20:30" });
+                    setLocationName(t('manual'));
+                }
+            }, [mode]);
+
+            // Re-calc when times or language changes
+            useEffect(() => {
+                if (prayerTimes) generateTimeline(prayerTimes);
+                else if (mode === 'manual') generateTimeline({ Fajr: "05:45", Sunrise: "07:05", Dhuhr: "13:15", Asr: "16:30", Maghrib: "19:15", Isha: "20:30" });
+                
+                // Update location label translation if in manual
+                if (mode === 'manual') setLocationName(t('manual'));
+                else if (locationName === TRANSLATIONS.en.my_loc || locationName === TRANSLATIONS.ms.my_loc) setLocationName(t('my_loc')); // simple switch
+            }, [prayerTimes, lang]);
+
+            // Update Slots
+            useEffect(() => {
+                if (timeline.length === 0) return;
+                const nowMins = now.getHours() * 60 + now.getMinutes();
+                let found = timeline.find(slot => {
+                    if (slot.start <= slot.end) return nowMins >= slot.start && nowMins < slot.end;
+                    else return nowMins >= slot.start || nowMins < slot.end;
+                });
+                if (!found) found = timeline[0];
+                setCurrentSlot(found);
+                
+                const idx = timeline.indexOf(found);
+                const next = timeline[(idx + 1) % timeline.length];
+                setNextSlot(next);
+            }, [now, timeline]);
+
+            const fetchTimes = () => {
+                if (!navigator.geolocation) {
+                    setErrorMsg("GPS not supported");
+                    setMode('manual');
+                    return;
+                }
+                navigator.geolocation.getCurrentPosition(async (pos) => {
+                    try {
+                        const { latitude, longitude } = pos.coords;
+                        const date = Math.floor(Date.now() / 1000);
+                        const res = await fetch(`https://api.aladhan.com/v1/timings/${date}?latitude=${latitude}&longitude=${longitude}&method=2`);
+                        const data = await res.json();
+                        if (data.data) {
+                            setPrayerTimes(data.data.timings);
+                            setLocationName(t('my_loc'));
+                        }
+                    } catch (e) {
+                        setErrorMsg("Connection Error");
+                        setMode('manual');
+                    }
+                }, () => {
+                    setErrorMsg("Location Denied");
+                    setMode('manual');
+                });
+            };
+
+            const parseToMins = (timeStr) => {
+                const [h, m] = timeStr.split(':').map(Number);
+                return h * 60 + m;
+            };
+
+            const formatMins = (mins) => {
+                let h = Math.floor(mins / 60);
+                const m = Math.floor(mins % 60);
+                if (h >= 24) h -= 24;
+                if (h < 0) h += 24;
+                const ampm = h >= 12 ? 'PM' : 'AM';
+                const h12 = h % 12 || 12;
+                return `${h12}:${m.toString().padStart(2, '0')} ${ampm}`;
+            };
+
+            const generateTimeline = (times) => {
+                const tVal = (key) => parseToMins(times[key]);
+                const fajr = tVal('Fajr');
+                const sunrise = tVal('Sunrise');
+                const dhuhr = tVal('Dhuhr');
+                const asr = tVal('Asr');
+                const maghrib = tVal('Maghrib');
+                const isha = tVal('Isha');
+
+                const qiyamStart = fajr - 120;
+                const sahurStart = fajr - 45;
+                const isyraqEnd = sunrise + 20;
+                const qailulahStart = dhuhr - 60;
+                const sleepStart = isha + 60;
+
+                // Merge Structure with Localized Content
+                const getContent = (id) => tRoutine(id);
+
+                const mapped = [
+                    { ...ROUTINE_STRUCTURE[0], ...getContent('qiyam'), start: qiyamStart, end: sahurStart },
+                    { ...ROUTINE_STRUCTURE[1], ...getContent('sahur'), start: sahurStart, end: fajr },
+                    { ...ROUTINE_STRUCTURE[2], ...getContent('fajr'), start: fajr, end: sunrise },
+                    { ...ROUTINE_STRUCTURE[3], ...getContent('isyraq'), start: sunrise, end: isyraqEnd },
+                    { ...ROUTINE_STRUCTURE[4], ...getContent('duha'), start: isyraqEnd, end: qailulahStart },
+                    { ...ROUTINE_STRUCTURE[5], ...getContent('qailulah'), start: qailulahStart, end: dhuhr },
+                    { ...ROUTINE_STRUCTURE[6], ...getContent('zuhur'), start: dhuhr, end: asr },
+                    { ...ROUTINE_STRUCTURE[7], ...getContent('asar'), start: asr, end: maghrib - 60 },
+                    { ...ROUTINE_STRUCTURE[8], ...getContent('evening'), start: maghrib - 60, end: maghrib },
+                    { ...ROUTINE_STRUCTURE[9], ...getContent('maghrib'), start: maghrib, end: isha },
+                    { ...ROUTINE_STRUCTURE[10], ...getContent('isya'), start: isha, end: sleepStart },
+                    { ...ROUTINE_STRUCTURE[11], ...getContent('sleep'), start: sleepStart, end: qiyamStart + 1440 }
+                ];
+
+                const sleep = mapped[mapped.length-1];
+                if (sleep.end >= 1440) sleep.end -= 1440;
+
+                setTimeline(mapped);
+            };
+
+            const getColorClasses = (color, isActive) => {
+                const base = {
+                    emerald: isActive ? 'bg-emerald-900/50 border-emerald-500/50 text-emerald-100 shadow-[0_0_20px_rgba(16,185,129,0.2)]' : 'bg-slate-900/40 border-slate-700 text-slate-400',
+                    gold: isActive ? 'bg-yellow-900/40 border-yellow-500/50 text-yellow-100 shadow-[0_0_20px_rgba(234,179,8,0.2)]' : 'bg-slate-900/40 border-slate-700 text-slate-400',
+                    indigo: isActive ? 'bg-indigo-900/50 border-indigo-500/50 text-indigo-100 shadow-[0_0_20px_rgba(99,102,241,0.2)]' : 'bg-slate-900/40 border-slate-700 text-slate-400',
+                };
+                return base[color] || base.emerald;
+            };
+
+            const getProgress = () => {
+                if (!currentSlot) return 0;
+                const nowMins = now.getHours() * 60 + now.getMinutes();
+                let start = currentSlot.start;
+                let end = currentSlot.end;
+                let curr = nowMins;
+                if (start > end) { end += 1440; if (curr < start) curr += 1440; }
+                const total = end - start;
+                const elapsed = curr - start;
+                return Math.min(100, Math.max(0, (elapsed / total) * 100));
+            };
+
+            return (
+                <div className={`max-w-md mx-auto relative min-h-screen pb-20 lang-${lang}`}>
+                    <div className="fixed inset-0 z-[-1] pointer-events-none bg-slate-950">
+                        <div className="absolute top-0 w-full h-96 bg-gradient-to-b from-emerald-900/20 to-transparent"></div>
+                        {currentSlot?.color === 'emerald' && <div className="absolute top-20 left-1/2 -translate-x-1/2 w-64 h-64 bg-emerald-600/20 blur-[100px] rounded-full animate-pulse-emerald"></div>}
+                        {currentSlot?.color === 'gold' && <div className="absolute top-20 left-1/2 -translate-x-1/2 w-64 h-64 bg-yellow-600/20 blur-[100px] rounded-full animate-pulse-gold"></div>}
+                    </div>
+
+                    <header className="px-6 pt-8 pb-4 sticky top-0 z-50 bg-slate-950/80 backdrop-blur-md border-b border-white/5 flex justify-between items-start">
+                        <div>
+                            <div className="flex items-center gap-2 text-emerald-400 mb-1">
+                                <span className="text-[10px] font-bold tracking-[0.2em] uppercase">{t('appTitle')}</span>
+                            </div>
+                            <h1 className="text-xl font-display font-bold text-white">Sunnah OS</h1>
+                        </div>
+                        
+                        <div className="flex flex-col items-end gap-2">
+                            {/* Language Selector */}
+                            <div className="relative">
+                                <button onClick={() => setShowLangMenu(!showLangMenu)} className="flex items-center gap-1 bg-slate-800/80 border border-slate-700 rounded-full px-2 py-1 text-xs text-slate-300 hover:bg-slate-700">
+                                    <Icon name="globe" size={12} /> {LANGUAGES[lang].flag}
+                                </button>
+                                {showLangMenu && (
+                                    <div className="absolute right-0 top-full mt-2 w-32 bg-slate-900 border border-slate-700 rounded-xl shadow-xl overflow-hidden z-50">
+                                        {Object.keys(LANGUAGES).map(l => (
+                                            <button key={l} 
+                                                onClick={() => { setLang(l); setShowLangMenu(false); }}
+                                                className={`w-full text-left px-3 py-2 text-xs flex items-center gap-2 hover:bg-slate-800 ${lang === l ? 'text-emerald-400 bg-slate-800' : 'text-slate-400'}`}>
+                                                <span>{LANGUAGES[l].flag}</span> {LANGUAGES[l].name}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            {showInstallBtn && (
+                                <button onClick={handleInstallClick} className="bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] uppercase font-bold px-3 py-1 rounded-full flex items-center gap-1 transition-colors">
+                                    <Icon name="download" size={10} /> {t('install')}
+                                </button>
+                            )}
+                            
+                            <div className="text-right">
+                                <div className="flex items-center justify-end gap-2 text-xs text-slate-400 mb-0.5">
+                                    <span>{locationName}</span>
+                                    <div className={`w-2 h-2 rounded-full ${mode === 'gps' ? 'bg-emerald-500' : 'bg-slate-600'}`}></div>
+                                </div>
+                                <div className="font-display text-2xl font-light">
+                                    {now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
+                                </div>
+                            </div>
+                        </div>
+                    </header>
+
+                    <main className="px-6 pt-6 space-y-4">
+                        <div className={`relative overflow-hidden rounded-3xl p-6 border transition-all duration-500 ${getColorClasses(currentSlot?.color || 'emerald', true)}`}>
+                            <div className="relative z-10">
+                                <div className="flex justify-between items-start mb-4">
+                                    <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-xs font-bold uppercase tracking-wider">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+                                        {t('current')}
+                                    </span>
+                                    <Icon name={currentSlot?.icon} size={24} className="opacity-80" />
+                                </div>
+                                <h2 className="text-3xl font-display font-bold leading-tight mb-2">
+                                    {currentSlot?.title || "Loading..."}
+                                </h2>
+                                <p className="text-sm opacity-80 font-light italic mb-6">
+                                    "{currentSlot?.desc}"
+                                </p>
+                                <div className="h-1 bg-black/20 rounded-full overflow-hidden">
+                                    <div className="h-full bg-white/50 transition-all duration-1000 ease-linear" style={{width: `${getProgress()}%`}}></div>
+                                </div>
+                                <div className="flex justify-between text-[10px] mt-2 opacity-60 font-mono">
+                                    <span>{currentSlot ? formatMins(currentSlot.start) : '--:--'}</span>
+                                    <span>{currentSlot ? formatMins(currentSlot.end) : '--:--'}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="rounded-2xl bg-slate-900/50 border border-slate-800 p-4 flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 rounded-xl bg-slate-800 text-slate-400">
+                                    <Icon name={nextSlot?.icon} size={20} />
+                                </div>
+                                <div>
+                                    <p className="text-[10px] text-emerald-500 font-bold uppercase tracking-widest mb-0.5">{t('next')}</p>
+                                    <h3 className="font-display font-medium text-slate-200">{nextSlot?.title}</h3>
+                                </div>
+                            </div>
+                            <div className="text-right">
+                                <span className="text-xs font-mono text-slate-500">{nextSlot ? formatMins(nextSlot.start) : '--:--'}</span>
+                            </div>
+                        </div>
+
+                        <div className="pt-4">
+                            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-[0.2em] mb-4 pl-1">
+                                {t('recommended')}
+                            </h3>
+                            <div className="space-y-3">
+                                {currentSlot?.sunnahs?.map((sunnah, idx) => (
+                                    <div key={idx} className="flex gap-4 p-4 rounded-xl bg-slate-900/30 border border-slate-800/50 hover:border-emerald-500/30 transition-colors group">
+                                        <div className="mt-1">
+                                            <div className="w-5 h-5 rounded-full border border-slate-600 flex items-center justify-center group-hover:border-emerald-500 group-hover:bg-emerald-500/20 transition-all">
+                                                <div className="w-2 h-2 rounded-full bg-slate-600 group-hover:bg-emerald-400"></div>
+                                            </div>
+                                        </div>
+                                        <p className="text-sm text-slate-300 font-light leading-relaxed">
+                                            {sunnah}
+                                        </p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="pt-8 pb-8">
+                            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-[0.2em] mb-6 pl-1">
+                                {t('timeline')}
+                            </h3>
+                            <div className="border-l border-slate-800 ml-3 pl-8 space-y-8">
+                                {timeline.map((slot, i) => {
+                                    const isActive = currentSlot?.id === slot.id;
+                                    return (
+                                        <div key={i} className={`relative transition-all duration-300 ${isActive ? 'opacity-100' : 'opacity-40'}`}>
+                                            <div className={`absolute -left-[37px] top-1 w-4 h-4 rounded-full border-2 transition-colors
+                                                ${isActive ? 'bg-emerald-500 border-emerald-900' : 'bg-slate-900 border-slate-700'}`}>
+                                            </div>
+                                            <div className="flex justify-between items-baseline mb-1">
+                                                <h4 className={`font-display font-medium ${isActive ? 'text-emerald-400' : 'text-slate-300'}`}>
+                                                    {slot.title}
+                                                </h4>
+                                                <span className="text-xs font-mono text-slate-500">{formatMins(slot.start)}</span>
+                                            </div>
+                                            <p className="text-xs text-slate-500">{slot.desc}</p>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* FOOTER */}
+                        <footer className="py-10 text-center space-y-2 opacity-60">
+                            <p className="text-[10px] text-slate-500 max-w-[280px] mx-auto leading-relaxed">
+                                {t('footer_note')}
+                            </p>
+                            <div className="flex items-center justify-center gap-1.5 text-[10px] text-slate-600 font-mono uppercase tracking-wider">
+                                <span>{t('footer_love')}</span>
+                                <Icon name="heart" size={10} className="fill-red-500 text-red-500 animate-pulse" />
+                                <span>{t('footer_loc')}</span>
+                            </div>
+                        </footer>
+
+                    </main>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
